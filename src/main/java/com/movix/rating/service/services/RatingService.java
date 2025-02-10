@@ -6,7 +6,7 @@ import com.movix.rating.service.responses.AverageRatingResponse;
 import com.movix.rating.service.responses.RatingResponse;
 import org.springframework.stereotype.Service;
 
-@Service
+
 public interface RatingService {
     public RatingResponse createRatingByMovieAndUser(String movieId, String userId, RatingRequest ratingRequest);
 

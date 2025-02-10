@@ -26,4 +26,8 @@ public class ResourceNotFoundException extends RuntimeException {
         this.fieldVal = fieldVal;
     }
 
+    public ResourceNotFoundException(String message) {
+        super(message);
+    }
+
 }

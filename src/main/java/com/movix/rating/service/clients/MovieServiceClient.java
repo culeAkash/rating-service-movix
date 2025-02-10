@@ -10,8 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@FeignClient(value = "MOVIE-SERVICE",url = "/api/v1/movies",fallback = MovieServiceClientImpl.class,configuration = FeignConfig.class)
+@FeignClient(name = "movie-service",fallback = MovieServiceClientImpl.class,configuration = FeignConfig.class)
 public interface MovieServiceClient {
-    @GetMapping("/getMovieById")
+    @GetMapping("/api/v1/movies/getMovieById")
     public ResponseEntity<MovieDTO> getMovieById(@RequestParam("movieId") String movieId);
 }

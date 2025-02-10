@@ -5,6 +5,7 @@ import com.movix.rating.service.clients.UserServiceClient;
 import com.movix.rating.service.dto.MovieDTO;
 import com.movix.rating.service.dto.UserDTO;
 import com.movix.rating.service.entities.Rating;
+import com.movix.rating.service.exceptions.GenericException;
 import com.movix.rating.service.exceptions.ResourceNotFoundException;
 import com.movix.rating.service.repositories.RatingRepository;
 import com.movix.rating.service.requests.RatingRequest;
@@ -12,12 +13,17 @@ import com.movix.rating.service.responses.AverageRatingResponse;
 import com.movix.rating.service.responses.RatingResponse;
 import com.movix.rating.service.services.RatingService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
+@Service
 @AllArgsConstructor
+@Slf4j
 public class RatingServiceImpl implements RatingService {
 
     private final RatingRepository ratingRepository;
@@ -33,33 +39,35 @@ public class RatingServiceImpl implements RatingService {
     public RatingResponse createRatingByMovieAndUser(String movieId, String userId, RatingRequest request) {
         // check if movie exists with movieId
         MovieDTO movieDTO = checkIfMovieExists(movieId);
-
+        log.info("Movie : {}", movieDTO.toString());
         // check if user exists with userId
         UserDTO userDTO = checkIfUserExists(userId);
+        log.info("User : {}", userDTO.toString());
+
+
 
         // check if user has already rated the movie
         Optional<Rating> presentRating = this.ratingRepository
                 .findByRatingUserIdAndRatingMovieId(userDTO.getUserId(), movieDTO.getMovieId());
-
+        Rating ratingResponse;
         if(presentRating.isPresent()) {
             Rating updatedRating = presentRating.get();
             updatedRating.setRatingValue(request.getRatingValue());
-            Rating updatedNewRating = this.ratingRepository.save(updatedRating);
-            return this.modelMapper.map(updatedNewRating, RatingResponse.class);
+            ratingResponse = this.ratingRepository.save(updatedRating);
         }
-
-        Rating createdRating = this.ratingRepository.save(Rating.builder()
-                        .ratingUserId(userDTO.getUserId())
-                        .ratingMovieId(movieDTO.getMovieId())
-                        .ratingValue(request.getRatingValue())
-                .build());
-
+        else{
+            ratingResponse = this.ratingRepository.save(Rating.builder()
+                    .ratingUserId(userDTO.getUserId())
+                    .ratingMovieId(movieDTO.getMovieId())
+                    .ratingValue(request.getRatingValue())
+                    .build());
+        }
         return RatingResponse.builder()
                 .user(userDTO)
-                .ratingId(createdRating.getRatingId())
-                .ratingValue(createdRating.getRatingValue())
-                .ratingCreationDate(createdRating.getRatingCreationDate())
-                .ratingUpdateDate(createdRating.getRatingUpdateDate())
+                .ratingId(ratingResponse.getRatingId())
+                .ratingValue(ratingResponse.getRatingValue())
+                .ratingCreationDate(ratingResponse.getRatingCreationDate())
+                .ratingUpdateDate(ratingResponse.getRatingUpdateDate())
                 .movie(movieDTO)
                 .build();
     }
@@ -89,10 +97,8 @@ public class RatingServiceImpl implements RatingService {
         UserDTO userDTO = checkIfUserExists(userId);
 
         Rating rating = this.ratingRepository.findByRatingUserIdAndRatingMovieId(userDTO.getUserId(), movieDTO.getMovieId())
-                .orElse(Rating.builder()
-                        .ratingUserId(userDTO.getUserId())
-                        .ratingMovieId(movieDTO.getMovieId())
-                        .ratingValue(0).build());
+                .orElseThrow(()->
+                        new GenericException(String.format("No rating has been given by user with userId : %s for movie with movieId : %s",userDTO.getUserId(),movieDTO.getMovieId()), HttpStatus.NOT_FOUND));
 
         return RatingResponse.builder()
                 .user(userDTO)

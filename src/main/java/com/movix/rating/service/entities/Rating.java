@@ -7,6 +7,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "ratings")
@@ -26,18 +27,24 @@ public class Rating {
     private Integer ratingValue;
 
     @Column(name = "rating_creation_date")
-    @JsonFormat(shape = JsonFormat.Shape.STRING,pattern = "yyyy-MM-dd")
+    @JsonFormat(shape = JsonFormat.Shape.STRING,pattern = "yyyy-MM-dd hh:MM:ss")
     @CreationTimestamp
-    private LocalDate ratingCreationDate;
+    private LocalDateTime ratingCreationDate;
 
     @Column(name = "rating_update_date")
-    @JsonFormat(shape = JsonFormat.Shape.STRING,pattern = "yyyy-MM-dd")
+    @JsonFormat(shape = JsonFormat.Shape.STRING,pattern = "yyyy-MM-dd HH:mm:ss")
     @UpdateTimestamp
-    private LocalDate ratingUpdateDate;
+    private LocalDateTime ratingUpdateDate;
 
     @Column(name = "rating_user_id",nullable = true)
     private String ratingUserId;
 
     @Column(name="rating_movie_id",nullable = false)
     private String ratingMovieId;
+
+
+    @PreUpdate
+    public void setLastUpdated() {
+        this.ratingUpdateDate = LocalDateTime.now();
+    }
 }

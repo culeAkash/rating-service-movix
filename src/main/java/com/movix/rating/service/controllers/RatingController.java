@@ -12,14 +12,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@RestController("/api/v1/ratings")
+@RestController
+@RequestMapping("/api/v1/ratings")
 @AllArgsConstructor
 public class RatingController {
 
     private final RatingService ratingService;
 
     @PostMapping("/changeRating")
-    @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<APIResponse<RatingResponse>> changeRating(
             @RequestParam("movieId") String movieId,
             @RequestParam("userId") String userId,
